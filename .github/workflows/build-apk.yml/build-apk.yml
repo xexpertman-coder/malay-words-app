@@ -1,0 +1,43 @@
+
+name: Build Malay Words APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get project
+        uses: actions/checkout@v4
+
+      - name: Extract Flutter project
+        run: |
+          ZIP_FILE=$(find . -maxdepth 1 -name '*.zip' -print -quit)
+          test -n "$ZIP_FILE"
+          mkdir extracted
+          unzip -q "$ZIP_FILE" -d extracted
+          cp -R extracted/malay_words_flutter/. .
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Malay-Words-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
